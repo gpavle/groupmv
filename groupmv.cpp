@@ -22,7 +22,24 @@ using std::left;
 
 bool dry_mode;
 
+void rename_files(const map<string,string>&);
+int check_args(const vector<string>&);
+void print_paths(const map<string,string>&);
+void trailing_slash(path&);
+void append_on_beginning(const path&,const string&);
+void append_on_end(const path&,const string&);
+void delete_on_end(const path&,const string&);
+void delete_on_beginning(const path&,const string&);
+void delete_middle(const path&,const string&);
 void print_help();
+
+
+void rename_filenames(const map<string,string> &file_paths){
+    for(const auto &pair : file_paths)
+        rename(pair.first, pair.second);
+}
+
+
 
 
 
@@ -139,10 +156,9 @@ void append_on_beginning(const path &directory_path,const string &string_to_chan
                 print_paths(file_paths);
                 
 
-            else{
-                for(const auto &pair : file_paths)
-                    rename(pair.first, pair.second);
-            }
+            else
+                rename_filenames(file_paths);
+            
 
 
 }
@@ -195,11 +211,8 @@ void append_on_end(const path &directory_path, const string &string_to_change){
     if(dry_mode)
          print_paths(file_paths);
 
-    else{
-        for(const auto &pair: file_paths){
-            rename(pair.first,pair.second);
-        }
-    }
+    else
+        rename_filenames(file_paths);
 
     
 
@@ -243,17 +256,13 @@ void delete_on_end(const path &directory_path, const string &string_to_change){
          print_paths(file_paths);
         
 
-    else{
-        for(const auto &pair : file_paths)
-            rename(pair.first,pair.second);
-        
-         }
-    }
+    else
+        rename_filenames(file_paths);
 
 
 
 
-
+}
 
 
 
@@ -301,11 +310,8 @@ void delete_on_beginning(const path &directory_path, const string &string_to_cha
     if(dry_mode)
         print_paths(file_paths);
 
-    else{
-        for(const auto &pair : file_paths)
-            rename(pair.first,pair.second);
-        
-        }
+    else
+        rename_filenames(file_paths);
 
     }
 
@@ -342,12 +348,8 @@ void delete_on_beginning(const path &directory_path, const string &string_to_cha
     if(dry_mode)
         print_paths(file_paths);
 
-    else{
-        for(const auto &pair : file_paths)
-            rename(pair.first,pair.second);
-        
-        }
-
+    else
+        rename_filenames(file_paths);
     }
 
 
@@ -363,12 +365,12 @@ void delete_on_beginning(const path &directory_path, const string &string_to_cha
 
 void print_help(){
 
-    cout<<"Usage: groupmv [directory path] [ -b || -e || -m] [ -a || -d] [string to change] (-d)"<<endl;
+    cout<<"Usage: groupmv [directory path] [ -b || -e || -m] [ -a || -d] [string to change] (-u)"<<endl;
     cout<< "-b:       modify string at the beginning of the filename"<<endl;
     cout<< "-e:       modify string at the end of the filename"<<endl;
     cout<< "-m        delete a string in the middle of a filename(Does NOT work with append flag. Do NOT substitute for -b or -e)"<<endl;
     cout<< "-a:       append a string to the filename"<<endl;
-    cout<< "-d:       delete a string from the filename"<<endl<<endl;
+    cout<< "-d:       delete a string from the filename"<<endl;
     cout<< "-u        dry run(display changes but dont actually make them(optional)"<<endl;
     cout<< "-h        display this help page"<<endl;
     cout<<"Options in brackets [] are required, options in parentheses () are optional"<<endl;

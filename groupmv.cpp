@@ -2,7 +2,6 @@
 #include <filesystem>
 #include <map>
 #include <iomanip>
-#include <unistd.h>
 #include <vector>
 
 using std::cout;
@@ -16,9 +15,9 @@ using std::filesystem::exists;
 using std::filesystem::directory_iterator;
 using std::filesystem::rename;
 using std::filesystem::path;
-using std::filesystem::is_directory;
 using std::setw;
 using std::left;
+using std::error_code;
 
 bool dry_mode;
 
@@ -35,8 +34,14 @@ void print_help();
 
 
 void rename_filenames(const map<string,string> &file_paths){
+    error_code ec;
     for(const auto &pair : file_paths)
-        rename(pair.first, pair.second);
+        rename(pair.first, pair.second, ec);
+    
+    if(ec){
+        cout<<ec.message();
+        return;
+    }
 }
 
 
@@ -68,30 +73,7 @@ int check_args(const vector<string> &args){
             return -1;
     }
 
-    else if(!exists(args.at(1))){
-        cerr<<"File does not exist"<<endl;
-        return -1;
-    }
-
-    else if(!is_directory(args.at(1))){
-        cerr<<"File exists but is not a directory"<<endl;
-    }
-
-    else if(access(args.at(1).c_str(),W_OK)  != 0 && access(args.at(1).c_str(),R_OK) !=0){
-        cerr<<"File found and is a directory but you dont have read nor write premissions"<<endl;
-        return -1;
-    }
-
-    else if(((access(args.at(1).c_str(),R_OK))) != 0){
-        cerr<<"File found and is a directory but you do not have read premissions"<<endl;
-        return -1;
-    }
-
-    else if(((access(args.at(1).c_str(),W_OK))) != 0){
-        cerr<<"File found and is a directory but you do not have write premissions"<<endl;
-        return -1;
-    }
-
+   
     
     return 0;
     
@@ -131,8 +113,9 @@ void append_on_beginning(const path &directory_path,const string &string_to_chan
     auto get_file_paths = [&](){
 
         map<string,string> file_paths;
+        error_code ec;
 
-        for(const auto &entity : directory_iterator(directory_path)){
+        for(const auto &entity : directory_iterator(directory_path, ec)){
 
 
             string filename = entity.path().filename().string();
@@ -141,6 +124,9 @@ void append_on_beginning(const path &directory_path,const string &string_to_chan
                 continue;
             file_paths.emplace(entity.path(), changed_path);   
             }
+            if(ec)
+                cout<<ec.message();
+            
             return file_paths;
             
         };
@@ -151,6 +137,9 @@ void append_on_beginning(const path &directory_path,const string &string_to_chan
 
 
             map<string,string> file_paths = get_file_paths();
+            
+            if(file_paths.empty())
+                return;
 
             if(dry_mode)
                 print_paths(file_paths);
@@ -191,7 +180,8 @@ void append_on_end(const path &directory_path, const string &string_to_change){
 
     auto get_file_paths = [&](){
         map<string,string> file_paths;
-        for(const auto &entity : directory_iterator(directory_path)){
+        error_code ec;
+        for(const auto &entity : directory_iterator(directory_path, ec)){
 
         string filename = entity.path().filename().string();
         string changed_path = directory_path.string() +  filename + string_to_change;
@@ -199,6 +189,9 @@ void append_on_end(const path &directory_path, const string &string_to_change){
                 continue;
         file_paths.emplace(entity.path(),changed_path);
         }
+        if(ec)
+            cout<<ec.message();
+        
         return file_paths;
 
     };
@@ -207,6 +200,9 @@ void append_on_end(const path &directory_path, const string &string_to_change){
 
 
     map<string,string> file_paths = get_file_paths();
+
+    if(file_paths.empty())
+        return;
 
     if(dry_mode)
          print_paths(file_paths);
@@ -227,7 +223,8 @@ void delete_on_end(const path &directory_path, const string &string_to_change){
 
     auto get_file_paths = [&](){
         map<string,string> file_paths;
-        for(const auto &entity : directory_iterator(directory_path)){
+        error_code ec;
+        for(const auto &entity : directory_iterator(directory_path, ec)){
 
             string filename = entity.path().filename().string();
             string changed_path = directory_path.string();      
@@ -244,6 +241,9 @@ void delete_on_end(const path &directory_path, const string &string_to_change){
             file_paths.emplace(entity.path(), changed_path);
             
          }  
+         if(ec)
+            cout<<ec.message();
+
          return file_paths;    
     
     };
@@ -251,6 +251,9 @@ void delete_on_end(const path &directory_path, const string &string_to_change){
 
 
     map<string,string> file_paths = get_file_paths();
+
+    if(file_paths.empty())
+        return;
 
     if(dry_mode)
          print_paths(file_paths);
@@ -280,7 +283,8 @@ void delete_on_beginning(const path &directory_path, const string &string_to_cha
 
     auto get_file_paths = [&](){
         map<string,string> file_paths;
-        for(const auto &entity : directory_iterator(directory_path)){
+        error_code ec;
+        for(const auto &entity : directory_iterator(directory_path, ec)){
 
             string filename = entity.path().filename().string();
             string changed_path = directory_path.string();
@@ -298,14 +302,19 @@ void delete_on_beginning(const path &directory_path, const string &string_to_cha
             file_paths.emplace(entity.path(),changed_path);
 
         }
+        if(ec)
+            cout<<ec.message();
     
-            return file_paths;
+        return file_paths;
             
     };
 
 
 
     map<string,string> file_paths = get_file_paths();
+
+    if(file_paths.empty())
+        return;
 
     if(dry_mode)
         print_paths(file_paths);
@@ -320,7 +329,8 @@ void delete_on_beginning(const path &directory_path, const string &string_to_cha
 
         auto get_file_paths = [&](){
         map<string,string> file_paths;
-        for(const auto &entity : directory_iterator(directory_path)){
+        error_code ec;
+        for(const auto &entity : directory_iterator(directory_path, ec)){
 
             string filename = entity.path().filename().string();
             string changed_path = directory_path.string();
@@ -338,12 +348,18 @@ void delete_on_beginning(const path &directory_path, const string &string_to_cha
             file_paths.emplace(entity.path(),changed_path);
 
         }
+        if(ec)
+            cout<<ec.message();
     
-            return file_paths;
+        return file_paths;
             
     };
 
     map<string,string> file_paths = get_file_paths();
+
+    if(file_paths.empty()){
+        return;
+    }
 
     if(dry_mode)
         print_paths(file_paths);

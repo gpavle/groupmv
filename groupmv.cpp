@@ -21,7 +21,7 @@ using std::error_code;
 
 bool dry_mode;
 
-void rename_files(const map<string,string>&);
+void rename_filenames(const map<string,string>&);
 int check_args(const vector<string>&);
 void print_paths(const map<string,string>&);
 void trailing_slash(path&);
